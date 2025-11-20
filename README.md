@@ -111,7 +111,7 @@ Saída de um Lex: arquivo em c (.c), que depois é compilado para criar um progr
 
 Veja abaixo uma sequência de compilação no momento de uma atribuição:
 
-![compilation-sequence.png](./public/compilation-sequence.png)
+![compilation-sequence.png](./image/compilation-sequence.png)
 
 * Lex -> Lexical Analyzer
 * Yacc -> Syntax Analyzer
