@@ -57,8 +57,7 @@ Resumindo:
 * **Flex** lê o texto e descobre “o que é o quê” (números, operadores, etc.).
 * **Bison** interpreta esses tokens com base em uma gramática e calcula o resultado.
 * **Yacc** é a versão antiga do Bison.
-<br/>
-<br/>
+
 # Mais sobre YACC (Yet Another Compiler-Compiler)
 >  É um compilador que implementa uma linguagem que permite criar outros compiladores. Ele facilita a leitura de um programa de computador em uma linguagem e contrói uma árvore sintática para o programa de entreda.
 Um gerador de analisadores sintáticos recebe como entrada uma especificação de sintaxe e produz como saída um procedimento para reconhecer essa linguagem. São chamados de compiladores de compiladores.
@@ -104,7 +103,7 @@ obs: geralmente começam com .y
 * Regra: Contém definições gramaticais em uma forma BNF modificada, são código C em {} e podem ser incorporadas dentro de esquemas de tradução.
 * Rotinas Auxiliares: Contém apenas código em C, inclui definiç!Oes de funçÕes para todas as funções necessárias na parte de regras, pode conter a definição da função main se o analisar sintático for executado como um programa e a função main() deve chamar a função yyparse().
 
-Arquivos .l (lex/flex)
+### Arquivos .l (lex/flex)
 
 Programa que gera analisadores léxicos. Contém expressões regulares e ações associadas a elas, que são usadas para reconhecer "tokens" em um código-fonte ou fluxo de texto.
 
@@ -114,8 +113,8 @@ Veja abaixo uma sequência de compilação no momento de uma atribuição:
 
 ![compilation-sequence.png](./public/compilation-sequence.png)
 
-Lex -> Lexical Analyzer
-Yacc -> Syntax Analyzer
+* Lex -> Lexical Analyzer
+* Yacc -> Syntax Analyzer
 
 | Arquivo      | Você edita? | Por quê?                            |
 | ------------ | ----------- | ----------------------------------- |
