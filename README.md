@@ -125,3 +125,13 @@ Veja abaixo uma sequência de compilação no momento de uma atribuição:
 | `lex.yy.c`   | ❌ Não      | gerado automaticamente              |
 
 
+# Prática
+
+
+
+# Contribuidores
+
+* Gabriela Lacerda (@gabrielasl18)
+* Isabele Rocha (@isadpr)
+* João Vitor (@joao)
+
