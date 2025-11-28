@@ -38,21 +38,10 @@ def t_STRING(t):
     t.value = t.value[1:-1]
     return t
 
-
 def t_NUMBER(t):
     r'\d+'
     t.value = int(t.value)
     return t
-
-t_ignore = " \t"
-
-def t_newline(t):
-    r'\n+'
-    t.lexer.lineno += t.value.count("\n")
-
-def t_error(t):
-    print("Illegal character '%s'" % t.value[0])
-    t.lexer.skip(1)
 
 t_EQUALS = r'='
 t_GT     = r'>'
@@ -64,6 +53,15 @@ t_COMMA  = r','
 t_LP     = r'\('
 t_RP     = r'\)'
 
+t_ignore = " \t"
+
+def t_newline(t):
+    r'\n+'
+    t.lexer.lineno += t.value.count("\n")
+
+def t_error(t):
+    print("Illegal character '%s'" % t.value[0])
+    t.lexer.skip(1)
 
 # Build the lexer
 import ply.lex as lex
@@ -76,18 +74,33 @@ precedence = (
     ('left', '*', '/'),
     ('right', 'UMINUS'),
 )
-
-# dictionary of names
-names = {}
-
-def p_statement_assign(p):
-    'statement : NAME "=" expression'
-    names[p[1]] = p[3]
+def p_statement(p):
+    '''statement : select_stmt
+                 | insert_stmt
+                 | delete_stmt'''
+    print("AST =", p[1])
 
 
-def p_statement_expr(p):
-    'statement : expression'
-    print(p[1])
+def p_select_statement(p):
+    "select_statement : SELECT select_list FROM IDENTIFICADOR where_opt"
+    p[0] = ("select", p[2], p[4], p[5])
+
+def p_select_lista_tudo(p):
+    "select_list : '*'"
+    p[0] = "*"
+
+def p_select_lista_colunas(p):
+    "select_list : column_list"
+    p[0] = p[1]
+
+def p_column_lista_unica(p):
+    "column_list : IDENTIFICADOR"
+    p[0] = [p[1]]
+
+def p_column_list_varios(p):
+    "column_list : column_list COMMA IDENT"
+    p[0] = p[1] + [p[3]]
+
 
 
 def p_error(p):
