@@ -127,7 +127,40 @@ Veja abaixo uma sequência de compilação no momento de uma atribuição:
 
 # Prática
 
+## Exemplos de comandos com SELECT
 
+```
+sql > SELECT * FROM clientes;
+
+sql > SELECT nome, email FROM clientes WHERE idade > 30;
+```
+
+## Exemplos de comandos com JOIN
+
+```
+sql > SELECT nome, valor FROM clientes JOIN pedidos ON id = cliente_id;
+```
+
+## Exemplos de comandos com INSERT
+
+```
+sql > INSERT INTO clientes (id, nome, idade, cpf, email) VALUES (6, "Rogério Ramos", 50, "999.888.777-66", "rogerio@example.com");
+```
+## Exemplos de comandos com UPDATE
+
+```
+sql > UPDATE clientes SET idade = 29 WHERE nome = "Ana Souza";
+
+sql > UPDATE clientes SET email = "novoemail@example.com", idade = 45 WHERE id = 5;
+```
+
+## Exemplos de comandos com DELETE
+
+```
+sql > DELETE FROM clientes WHERE idade < 25;
+
+sql > DELETE FROM pedidos;
+```
 
 # Contribuidores
 
