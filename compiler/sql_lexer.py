@@ -1,7 +1,7 @@
 import ply.lex as lex
 import ply.yacc as yacc
 
-# ---------------- Lexer ----------------
+# Lexer
 tokens = (
     'IDENTIFICADOR', 'NUMBER', 'STRING',
     'EQUALS', 'GT', 'LT', 'GE', 'LE', 'NE',
@@ -63,7 +63,7 @@ def t_error(t):
 
 lexer = lex.lex()
 
-# ---------------- Banco de dados mock ----------------
+# Banco de dados mock 
 db = {
     "clientes": [
         {"id": 1, "nome": "Ana Souza", "idade": 28, "cpf": "123.456.789-00", "email": "ana.souza@example.com"},
@@ -80,7 +80,7 @@ db = {
     ]
 }
 
-# ---------------- Parser ----------------
+# Parser 
 precedence = ()
 
 def p_statement(p):
@@ -95,12 +95,12 @@ def p_SEMICOLON_OPT(p):
                      | '''
     pass
 
-# ---------- SELECT + JOIN ----------
+# SELECT + JOIN 
 def p_select_stmt(p):
     "select_stmt : SELECT select_list FROM IDENTIFICADOR join_opt where_opt"
     table = db.get(p[4], [])
 
-    # JOIN (somente um JOIN por simplicidade)
+    # JOIN 
     if p[5]:
         join_table_name, left_key, right_key = p[5]
         join_table = db.get(join_table_name, [])
@@ -147,7 +147,7 @@ def p_select_list_columns(p):
     "select_list : column_list"
     p[0] = p[1]
 
-# ---------- UPDATE ----------
+# UPDATE
 def p_update_stmt(p):
     "update_stmt : UPDATE IDENTIFICADOR SET update_list where_opt"
     table = db.get(p[2], [])
@@ -177,7 +177,7 @@ def p_update_list_multiple(p):
     "update_list : update_list COMMA IDENTIFICADOR EQUALS value"
     p[0] = {**p[1], p[3]: p[5]}
 
-# ---------- COMMON RULES ----------
+# COMMON RULES
 def p_column_list_single(p):
     "column_list : IDENTIFICADOR"
     p[0] = [p[1]]
@@ -208,7 +208,7 @@ def p_value(p):
              | STRING'''
     p[0] = p[1]
 
-# ---------- INSERT ----------
+# INSERT
 def p_insert_stmt(p):
     "insert_stmt : INSERT INTO IDENTIFICADOR LP column_list RP VALUES LP value_list RP"
     table = db.setdefault(p[3], [])
@@ -225,7 +225,7 @@ def p_value_list_multiple(p):
     "value_list : value_list COMMA value"
     p[0] = p[1] + [p[3]]
 
-# ---------- DELETE ----------
+# DELETE
 def p_delete_stmt(p):
     "delete_stmt : DELETE FROM IDENTIFICADOR where_opt"
     table = db.get(p[3], [])
@@ -246,7 +246,7 @@ def p_delete_stmt(p):
         print(f"{deleted} row(s) deleted from {p[3]}.")
     p[0] = deleted
 
-# ---------- Error ----------
+# Error
 def p_error(p):
     if p:
         print("Syntax error at '%s'" % p.value)
@@ -255,7 +255,7 @@ def p_error(p):
 
 parser = yacc.yacc()
 
-# ---------------- Helper ----------------
+# Helper
 def print_table(rows):
     if not rows:
         print("(empty set)")
@@ -270,7 +270,7 @@ def print_table(rows):
         print("| " + " | ".join(str(r[h]).ljust(w) for h, w in zip(headers, col_widths)) + " |")
     print("+" + line + "+")
 
-# --------------- REPL ---------------
+# REPL
 if __name__ == "__main__":
     while True:
         try:
