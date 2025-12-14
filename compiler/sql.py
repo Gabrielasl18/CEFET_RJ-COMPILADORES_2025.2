@@ -1,13 +1,17 @@
 import ply.lex as lex
 import ply.yacc as yacc
 
+# =========================
+# LEXER
+# =========================
+
 tokens = (
     'IDENTIFICADOR', 'NUMBER', 'STRING',
     'EQUALS', 'GT', 'LT', 'GE', 'LE', 'NE',
     'COMMA', 'LP', 'RP'
 )
 
-literals = ['*']
+literals = ['*', ';']
 
 reserved = {
     'select': 'SELECT',
@@ -21,8 +25,8 @@ reserved = {
     'set': 'SET',
     'join': 'JOIN',
     'on': 'ON',
-    'and': 'AND',      # >>> AND / OR <<<
-    'or': 'OR'         # >>> AND / OR <<<
+    'and': 'AND',
+    'or': 'OR'
 }
 
 tokens = tokens + tuple(reserved.values())
@@ -59,10 +63,14 @@ def t_newline(t):
     t.lexer.lineno += len(t.value)
 
 def t_error(t):
-    print("Illegal character '%s'" % t.value[0])
+    print(f"Illegal character '{t.value[0]}'")
     t.lexer.skip(1)
 
 lexer = lex.lex()
+
+# =========================
+# MOCK DATABASE
+# =========================
 
 db = {
     "clientes": [
@@ -78,47 +86,64 @@ db = {
     ]
 }
 
+# =========================
+# PARSER
+# =========================
+
 precedence = (
     ('left', 'OR'),
     ('left', 'AND'),
 )
 
+# -------------------------
+# STATEMENT + ;
+# -------------------------
+
 def p_statement(p):
-    '''statement : select_stmt
-                 | insert_stmt
-                 | delete_stmt
-                 | update_stmt'''
+    '''statement : command semicolon_opt'''
     p[0] = p[1]
 
+def p_command(p):
+    '''command : select_stmt
+               | insert_stmt
+               | delete_stmt
+               | update_stmt'''
+    p[0] = p[1]
+
+def p_semicolon_opt(p):
+    '''semicolon_opt : ';'
+                     | '''
+    pass
+
+# -------------------------
+# SELECT
+# -------------------------
 
 def p_select_stmt(p):
     "select_stmt : SELECT select_list FROM IDENTIFICADOR join_opt where_opt"
-
     table = db.get(p[4], [])
 
-    # >>> JOIN <<<
+    # JOIN
     if p[5]:
         join_table, left_key, right_key = p[5]
         join_rows = db.get(join_table, [])
-
-        new_table = []
+        joined = []
         for r1 in table:
             for r2 in join_rows:
                 if r1[left_key] == r2[right_key]:
-                    new_table.append({**r1, **r2})
+                    joined.append({**r1, **r2})
+        table = joined
 
-        table = new_table
-
+    # WHERE
     if p[6]:
         table = [r for r in table if eval_condition(p[6], r)]
 
-    if p[2] == '*':
-        result = table
-    else:
-        result = [{c: r[c] for c in p[2]} for r in table]
+    # Projection
+    if p[2] != '*':
+        table = [{c: r[c] for c in p[2]} for r in table]
 
-    print(result)
-    p[0] = result
+    print(table)
+    p[0] = table
 
 def p_select_list_all(p):
     "select_list : '*'"
@@ -136,6 +161,21 @@ def p_column_list_multiple(p):
     "column_list : column_list COMMA IDENTIFICADOR"
     p[0] = p[1] + [p[3]]
 
+# -------------------------
+# JOIN
+# -------------------------
+
+def p_join_opt_empty(p):
+    "join_opt : "
+    p[0] = None
+
+def p_join_opt_clause(p):
+    "join_opt : JOIN IDENTIFICADOR ON IDENTIFICADOR EQUALS IDENTIFICADOR"
+    p[0] = (p[2], p[4], p[6])
+
+# -------------------------
+# WHERE / CONDITIONS
+# -------------------------
 
 def p_where_opt_empty(p):
     "where_opt : "
@@ -144,7 +184,6 @@ def p_where_opt_empty(p):
 def p_where_opt_clause(p):
     "where_opt : WHERE condition"
     p[0] = p[2]
-
 
 def p_condition_simple(p):
     '''condition : IDENTIFICADOR EQUALS value
@@ -172,6 +211,18 @@ def p_value(p):
              | STRING'''
     p[0] = p[1]
 
+# -------------------------
+# INSERT
+# -------------------------
+
+def p_insert_stmt(p):
+    "insert_stmt : INSERT INTO IDENTIFICADOR LP IDENTIFICADOR RP VALUES LP value RP"
+    db.setdefault(p[3], []).append({p[5]: p[9]})
+    print("INSERT OK")
+
+# -------------------------
+# DELETE
+# -------------------------
 
 def p_delete_stmt(p):
     "delete_stmt : DELETE FROM IDENTIFICADOR where_opt"
@@ -182,6 +233,9 @@ def p_delete_stmt(p):
         db[p[3]] = []
     print("DELETE OK")
 
+# -------------------------
+# UPDATE
+# -------------------------
 
 def p_update_stmt(p):
     "update_stmt : UPDATE IDENTIFICADOR SET IDENTIFICADOR EQUALS value where_opt"
@@ -191,10 +245,9 @@ def p_update_stmt(p):
             row[p[4]] = p[6]
     print("UPDATE OK")
 
-def p_insert_stmt(p):
-    "insert_stmt : INSERT INTO IDENTIFICADOR LP IDENTIFICADOR RP VALUES LP value RP"
-    db.setdefault(p[3], []).append({p[5]: p[9]})
-    print("INSERT OK")
+# -------------------------
+# SEMANTIC EVALUATOR
+# -------------------------
 
 def eval_condition(cond, row):
     kind = cond[0]
@@ -214,19 +267,18 @@ def eval_condition(cond, row):
     if kind == 'OR':
         return eval_condition(cond[1], row) or eval_condition(cond[2], row)
 
-
-def p_join_opt_empty(p):
-    "join_opt : "
-    p[0] = None
-
-def p_join_opt_clause(p):
-    "join_opt : JOIN IDENTIFICADOR ON IDENTIFICADOR EQUALS IDENTIFICADOR"
-    p[0] = (p[2], p[4], p[6])
+# -------------------------
+# ERROR
+# -------------------------
 
 def p_error(p):
     print("Syntax error")
 
 parser = yacc.yacc()
+
+# =========================
+# REPL
+# =========================
 
 while True:
     try:
