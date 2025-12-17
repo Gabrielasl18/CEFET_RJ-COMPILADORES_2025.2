@@ -1,10 +1,6 @@
 import ply.lex as lex
 import ply.yacc as yacc
 
-# =========================
-# LEXER
-# =========================
-
 tokens = (
     'IDENTIFICADOR', 'NUMBER', 'STRING',
     'EQUALS', 'GT', 'LT', 'GE', 'LE', 'NE',
@@ -68,10 +64,6 @@ def t_error(t):
 
 lexer = lex.lex()
 
-# =========================
-# MOCK DATABASE
-# =========================
-
 db = {
     "clientes": [
         {"id": 1, "nome": "Ana Souza", "idade": 28},
@@ -86,21 +78,13 @@ db = {
     ]
 }
 
-# =========================
-# PARSER
-# =========================
-
 precedence = (
     ('left', 'OR'),
     ('left', 'AND'),
 )
 
-# -------------------------
-# STATEMENT + ;
-# -------------------------
-
 def p_statement(p):
-    '''statement : command semicolon_opt'''
+    '''statement : command ';' '''
     p[0] = p[1]
 
 def p_command(p):
@@ -114,10 +98,6 @@ def p_semicolon_opt(p):
     '''semicolon_opt : ';'
                      | '''
     pass
-
-# -------------------------
-# SELECT
-# -------------------------
 
 def p_select_stmt(p):
     "select_stmt : SELECT select_list FROM IDENTIFICADOR join_opt where_opt"
@@ -173,10 +153,6 @@ def p_join_opt_clause(p):
     "join_opt : JOIN IDENTIFICADOR ON IDENTIFICADOR EQUALS IDENTIFICADOR"
     p[0] = (p[2], p[4], p[6])
 
-# -------------------------
-# WHERE / CONDITIONS
-# -------------------------
-
 def p_where_opt_empty(p):
     "where_opt : "
     p[0] = None
@@ -211,18 +187,10 @@ def p_value(p):
              | STRING'''
     p[0] = p[1]
 
-# -------------------------
-# INSERT
-# -------------------------
-
 def p_insert_stmt(p):
     "insert_stmt : INSERT INTO IDENTIFICADOR LP IDENTIFICADOR RP VALUES LP value RP"
     db.setdefault(p[3], []).append({p[5]: p[9]})
     print("INSERT OK")
-
-# -------------------------
-# DELETE
-# -------------------------
 
 def p_delete_stmt(p):
     "delete_stmt : DELETE FROM IDENTIFICADOR where_opt"
@@ -233,10 +201,6 @@ def p_delete_stmt(p):
         db[p[3]] = []
     print("DELETE OK")
 
-# -------------------------
-# UPDATE
-# -------------------------
-
 def p_update_stmt(p):
     "update_stmt : UPDATE IDENTIFICADOR SET IDENTIFICADOR EQUALS value where_opt"
     table = db.get(p[2], [])
@@ -244,10 +208,6 @@ def p_update_stmt(p):
         if not p[6] or eval_condition(p[6], row):
             row[p[4]] = p[6]
     print("UPDATE OK")
-
-# -------------------------
-# SEMANTIC EVALUATOR
-# -------------------------
 
 def eval_condition(cond, row):
     kind = cond[0]
@@ -267,18 +227,10 @@ def eval_condition(cond, row):
     if kind == 'OR':
         return eval_condition(cond[1], row) or eval_condition(cond[2], row)
 
-# -------------------------
-# ERROR
-# -------------------------
-
 def p_error(p):
     print("Syntax error")
 
 parser = yacc.yacc()
-
-# =========================
-# REPL
-# =========================
 
 while True:
     try:
